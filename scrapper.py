@@ -28,20 +28,22 @@ def get_html(url):
 
 
 class YahooFinanaceCrawler:
-    def __init__(self, symbol):
+    def __init__(self, symbol, mongoURI):
         self.symbols = symbol
         self.base_url = 'http://in.finance.yahoo.com'
+        self.mongo_client = Mongo(mongoURI)
 
     def fetch_article_links(self, security):
         search_url = make_search_url(self.base_url, security)
         soup = get_html(search_url)
-        css = regex.compile('.*js-content-viewer.*')
+        css = re.compile('.*js-content-viewer.*')
         links = {security: [a.get('href')
                             for a in soup.find_all('a', {'class': css})]}
         return links
 
     def fetch_articles(self, security):
         links_map = self.fetch_article_links(security)
+        cards = []
         for link in links_map:
             url = self.base_url+link
             soup = get_html(url)
@@ -58,19 +60,20 @@ class YahooFinanaceCrawler:
             details['story_date'] = extract_single(card, 'time').strip()
             details['security'] = security.strip()
             details['current_date'] = date.today()
-            details['author'] = extract_sinlge(
+            details['author'] = extract_single(
                 card, 'div', True, 'class', 'caas-attr-meta')
             details['source'] = extract_domain(
                 extract_html_property(
                     card, 'href', 'a', 'class', 'link rapid-noclick-resp caas-attr-provider-logo'))
             details['category'] = 'news'
             articles.append(details)
+        return articles
 
-        self.upload_to_mongo(articles)
+    def upload_to_mongo(self, data):
+        self.mongo_client.upload(data)
 
-    def upload_to_mongo(mongoURI, data):
-        client = Mongo(mongoURI)
-        result = client.upload(data)
-        if result:
-            return True
-        return False
+    def start(self):
+        for symbol in self.symbols:
+            articles = self.fetch_articles(symbol)
+            threading.Thread(target=self.upload_to_mongo,
+                             args=(articles,)).start()

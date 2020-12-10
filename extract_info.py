@@ -2,17 +2,18 @@ from bs4 import BeautifulSoup
 import tldextract
 
 
-def extract_all(data, tag, parent=None, option=None, search_body=None):
+def extract_all(data, tag, parent=None, option=None, search_field=None):
     soup = BeautifulSoup(data, 'lxml')
-    if parent not None:
-        if option not None:
+    result = ""
+    if parent is not None:
+        if option is not None:
             for r in soup.find_all(tag, {option: search_field}):
                 result += str(r.previousSibling).strip() + " "
         else:
             for r in soup.find_all(tag):
                 result += str(r.previousSibling).strip() + " "
     else:
-        if option not None:
+        if option is not None:
             for r in soup.find_all(tag, {option: search_field}):
                 result += str(r.text).strip() + " "
         else:
@@ -21,22 +22,22 @@ def extract_all(data, tag, parent=None, option=None, search_body=None):
     return result
 
 
-def extract_single(data, tag, parent=None, option=None, search_body=None):
+def extract_single(data, tag, parent=None, option=None, search_field=None):
     soup = BeautifulSoup(data, 'lxml')
-    if parent not None:
-        if option not None:
-            r = soup.find(tag, {option: search_field}):
-                result = str(r.previousSibling).strip()
+    if parent is not None:
+        if option is not None:
+            r = soup.find(tag, {option: search_field})
+            result = str(r.previousSibling).strip()
         else:
-            r = soup.find(tag):
-                result = str(r.previousSibling).strip()
+            r = soup.find(tag)
+            result = str(r.previousSibling).strip()
     else:
-        if option not None:
-            r = soup.find(tag, {option: search_field}):
-                result = str(r.text).strip()
+        if option is not None:
+            r = soup.find(tag, {option: search_field})
+            result = str(r.text).strip()
         else:
-            r = soup.find(tag):
-                result = str(r.text).strip()
+            r = soup.find(tag)
+            result = str(r.text).strip()
     return result
 
 
