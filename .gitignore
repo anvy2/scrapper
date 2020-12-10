@@ -1,0 +1,7 @@
+.venv
+.idea
+.vscode
+geckodriver.log
+ghostdriver.log
+temp.html
+temp.py
