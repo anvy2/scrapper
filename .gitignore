@@ -6,3 +6,4 @@ ghostdriver.log
 temp.html
 temp.py
 output.txt
+__pycache__

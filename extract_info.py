@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import tldextract
 import validators
+import dateutil.parser as dparser
 
 
 def extract_all(soup, tag, parent=None, options=None):
@@ -53,8 +54,18 @@ def extract_domain(url):
 def extract_html_property(soup, property, tag, options):
     # soup = BeautifulSoup(soup, 'lxml')
     attr = soup.find(tag, options)
-    if(attr is None):
+    if attr is None:
         return ""
-    if attr(property) in (None, ''):
-        return attr('alt')
-    return attr(property)
+    if attr.get(property) in (None, ''):
+        return attr.get('alt')
+    return attr.get(property)
+
+
+def extract_date(string):
+    t = dparser.parse(string, fuzzy=True)
+    return t.date()
+
+
+def extract_time(string):
+    t = dparser.parse(string, fuzzy=True)
+    return t.time()
