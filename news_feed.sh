@@ -1,0 +1,1 @@
+python scrapper/init.py --root_dir="xyz" --source_list="xyz"

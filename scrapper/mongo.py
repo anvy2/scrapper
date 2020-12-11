@@ -13,7 +13,3 @@ class Mongo:
         db = self.client['db_name']
         collection = db[table_name]
         result = collection.insert_many(documents=data, ordered=False)
-
-    def count(self, filter):
-        result = self.count_docuements(filter)
-        return result
