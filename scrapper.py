@@ -27,7 +27,7 @@ def get_html(url):
 class Scrapper:
     def __init__(self, mongoURI, symbol, make_search_url, fields, params):
         self.symbols = symbol
-        self.base_url = params.base_url
+        self.base_url = params['base_url']
         self.make_search_url = make_search_url
         # self.mongo_client = Mongo(params['mongoURI'])
         self.params = params
@@ -39,7 +39,7 @@ class Scrapper:
         # css = re.compile('.*js-content-viewer.*')
         links = [a.get(self.params['search']['property'])
                  for a in soup.find_all(self.params['search']['tag'], self.params['search']['options'])]
-        print(links)
+        # print(links)
         return links
 
     def fetch_articles(self, security):
@@ -49,7 +49,7 @@ class Scrapper:
             url = self.base_url+link
             soup = get_html(url)
             # print(soup)
-            for t in soup.find_all(self.params['article'], self.params['article']['options']):
+            for t in soup.find_all(self.params['article_container']['tag'], self.params['article_container'].get('options')):
                 cards.append(t)
 
         # print(cards)
@@ -104,6 +104,7 @@ class Scrapper:
     def start(self):
         for symbol in self.symbols:
             articles = self.fetch_articles(symbol)
-            threading.Thread(target=self.upload_to_mongo,
-                             args=(articles,)).start()
+            print(articles)
+            # threading.Thread(target=self.upload_to_mongo,
+            #                  args=(articles,)).start()
         driver.quit()

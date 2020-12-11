@@ -3,7 +3,7 @@ import tldextract
 import validators
 
 
-def extract_all(soup, tag, parent=None, options):
+def extract_all(soup, tag, parent=None, options=None):
     # soup = BeautifulSoup(soup, 'lxml')
     result = ""
     if parent is not None:

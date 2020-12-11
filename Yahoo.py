@@ -1,9 +1,10 @@
 import pandas as pd
 import scrapper
+import re
 
 data = pd.read_pickle('symbols.pickle')
 symbols = list(data['symbol'])
-# symbols = ['AAPL']
+symbols = ['AAPL']
 
 
 def make_search_url(base_url, security):
@@ -15,6 +16,19 @@ fields = ['title', 'body', 'story_date', 'author', 'source']
 YahooOptions = {
     'mongoURI': 'sondoins',
     'base_url': 'http://in.finance.yahoo.com',
+    'search': {
+        'property': 'href',
+        'tag': 'a',
+        'options': {
+            'class': re.compile('.*js-content-viewer.*')
+        }
+    },
+    'article_container': {
+        'tag': 'article',
+        'options': {
+            'class': 'caas-container'
+        }
+    },
     'title': {
         'tag': 'h1',
         'options': {
@@ -29,7 +43,8 @@ YahooOptions = {
         }
     },
     'story_date': {
-        'tag': 'time'
+        'tag': 'time',
+        'single': True
     },
     'author': {
         'tag': 'div',
@@ -43,12 +58,14 @@ YahooOptions = {
             'class': 'link rapid-noclick-resp caas-attr-provider-logo'
         },
         'html_property': 'href',
-        'is_domain': True
+        'is_domain': True,
+        'single': True
     }
 }
 
-mongoURI = "sjdbibs"
+mongoURI = "mongodb://username:password@mongodb_endpoint"
 
 
-YahooFinanceScrapper = scrapper(
+YahooFinanceScrapper = scrapper.Scrapper(
     mongoURI, symbols, make_search_url, fields, YahooOptions)
+YahooFinanceScrapper.start()
