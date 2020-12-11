@@ -38,7 +38,7 @@ class Scrapper:
     def __init__(self, symbols, make_search_url, fields, params):
         self.symbols = symbols
         self.base_url = params['base_url']
-        self.make_search_url = make_search_url
+        self.make_search_url = params['make_search_url']
         # self.mongo_client = Mongo(params['mongoURI'])
         self.params = params
         self.fields = fields
@@ -50,12 +50,9 @@ class Scrapper:
         pages = 1
         if self.params['search'].get('pagination') is True:
             filter = self.params['search']['pages']
-            # print(filter)
             if filter.get('custom') is None:
-                # print(soup)
                 endpage = extract_html_property(soup, filter['html_property'],
                                                 filter['tag'], filter['options'])
-                # print(endpage)
                 pages = int(endpage)
 
             else:
@@ -112,11 +109,11 @@ class Scrapper:
                     if self.params[field].get('html_property') is not None:
                         result = extract_html_property(card, self.params[field].get('html_property'), self.params[field]['tag'],
                                                        self.params[field].get('options'))
-                        if self.params[field].get('is_domain') is not None:
-                            result = extract_domain(result)
                     else:
                         result = extract_single(
                             card, self.params[field]['tag'], self.params[field].get('parent'), self.params[field].get('options'))
+                    if self.params[field].get('is_domain') is not None:
+                        result = extract_domain(result)
                 else:
                     result = extract_all(
                         card, self.params[field]['tag'], self.params[field].get('parent'), self.params[field].get('options'))

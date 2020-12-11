@@ -1,4 +1,5 @@
 import scrapper
+import map
 import re
 
 
@@ -18,6 +19,7 @@ fields = ['title', 'body', 'story_date', 'author', 'source', 'story_time']
 
 YahooOptions = {
     'mongoURI': 'sondoins',
+    'make_search_url': make_search_url,
     'base_url': 'http://in.finance.yahoo.com',
     'search': {
         'container': {
@@ -79,14 +81,10 @@ YahooOptions = {
 }
 
 
-def init(symbol, column):
-    keys = list(symbol[column])
-    value = list(symbol['symbol'])
-    symbols = {}
-    for i in range(len(keys)):
-        symbols[keys[i]] = value[i]
+def init(symbols, column):
+    result = map.get_map(symbols, column)
     YahooFinanceScrapper = scrapper.Scrapper(
-        symbols, make_search_url, fields, YahooOptions)
+        result, fields, YahooOptions)
     YahooFinanceScrapper.start()
 
 

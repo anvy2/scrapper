@@ -31,6 +31,7 @@ def filter_source(string):
 TOIOptions = {
     'mongoURI': 'xyz',
     'base_url': 'https://timesofindia.indiatimes.com',
+    'make_search_url': make_search_url,
     'search': {
         'container': {
             'tag': 'div',
@@ -110,7 +111,7 @@ def init(symbol, column):
     for i in range(len(keys)):
         symbols[keys[i]] = value[i]
     TOIScrapper = scrapper.Scrapper(
-        symbols, make_search_url, fields, TOIOptions)
+        symbols, fields, TOIOptions)
     TOIScrapper.start()
 
 
