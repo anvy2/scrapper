@@ -12,61 +12,90 @@ from mongo import Mongo
 
 options = webdriver.ChromeOptions()
 options.binary_location = "/usr/bin/google-chrome-unstable"
+options.headless = True
 driver = webdriver.Chrome(options=options)
-
-
-def make_search_url(base_url, security):
-    return base_url+'/quote/'+security+'?p='+security
 
 
 def get_html(url):
     driver.get(url)
     html = driver.execute_script('return document.body.innerHTML;')
-    time.sleep(5)
+    time.sleep(3)
     soup = BeautifulSoup(html, 'lxml')
     return soup
 
 
-class YahooFinanaceCrawler:
-    def __init__(self, symbol, mongoURI):
+class Scrapper:
+    def __init__(self, mongoURI, symbol, make_search_url, fields, params):
         self.symbols = symbol
-        self.base_url = 'http://in.finance.yahoo.com'
-        self.mongo_client = Mongo(mongoURI)
+        self.base_url = params.base_url
+        self.make_search_url = make_search_url
+        # self.mongo_client = Mongo(params['mongoURI'])
+        self.params = params
+        self.fields = fields
 
     def fetch_article_links(self, security):
-        search_url = make_search_url(self.base_url, security)
+        search_url = self.make_search_url(self.base_url, security)
         soup = get_html(search_url)
-        css = re.compile('.*js-content-viewer.*')
-        links = {security: [a.get('href')
-                            for a in soup.find_all('a', {'class': css})]}
+        # css = re.compile('.*js-content-viewer.*')
+        links = [a.get(self.params['search']['property'])
+                 for a in soup.find_all(self.params['search']['tag'], self.params['search']['options'])]
+        print(links)
         return links
 
     def fetch_articles(self, security):
-        links_map = self.fetch_article_links(security)
+        links = self.fetch_article_links(security)
         cards = []
-        for link in links_map:
+        for link in links:
             url = self.base_url+link
             soup = get_html(url)
-            cards = [articles for articles in soup.find_all(
-                'div', {'class': 'caas-container'})]
+            # print(soup)
+            for t in soup.find_all(self.params['article'], self.params['article']['options']):
+                cards.append(t)
+
+        # print(cards)
         articles = []
 
         for card in cards:
             details = {}
-            details['title'] = extract_single(
-                card, 'h1', 'data-test-locator', 'headline').strip()
-            details['body'] = extract_all(
-                card, 'div', 'class', 'caas-body').strip()
-            details['story_date'] = extract_single(card, 'time').strip()
-            details['security'] = security.strip()
+            details['security'] = security
             details['current_date'] = date.today()
-            details['author'] = extract_single(
-                card, 'div', True, 'class', 'caas-attr-meta')
-            details['source'] = extract_domain(
-                extract_html_property(
-                    card, 'href', 'a', 'class', 'link rapid-noclick-resp caas-attr-provider-logo'))
             details['category'] = 'news'
+            for field in self.fields:
+                result = ""
+                if self.params[field].get('single') is not None:
+                    if self.params[field].get('html_property') is not None:
+                        result = extract_html_property(card, self.params[field].get('html_property'), self.params[field]['tag'],
+                                                       self.params[field].get('options'))
+                        if self.params[field].get('is_domain') is not None:
+                            result = extract_domain(result)
+                    else:
+                        result = extract_single(
+                            card, self.params[field]['tag'], self.params[field].get('parent'), self.params[field].get('options'))
+                else:
+                    result = extract_all(
+                        card, self.params[field]['tag'], self.params[field].get('parent'), self.params[field].get('options'))
+                details[field] = result
+            details['body'] = details['body'].replace("\xa0", "")
             articles.append(details)
+
+        # for card in cards:
+        #     details = {}
+        #     details['title'] = extract_single(
+        #         card, self.params['title']['tag'], None, self.params['title']['options'])
+        #     body = extract_all(
+        #         card, self.params['body']['tag'], None, 'class', 'caas-body')
+        #     details['body'] = body.replace("\xa0", "")
+        #     details['story_date'] = extract_single(card, 'time')
+        #     details['security'] = security
+        #     details['current_date'] = date.today()
+        #     details['author'] = extract_single(
+        #         card, 'div', None, 'class', 'caas-attr-meta')
+        #     details['source'] = extract_domain(
+        #         extract_html_property(
+        #             card, 'href', 'a', 'class', 'link rapid-noclick-resp caas-attr-provider-logo'))
+        #     details['category'] = 'news'
+        #     articles.append(details)
+        #     print(articles)
         return articles
 
     def upload_to_mongo(self, data):
@@ -77,3 +106,4 @@ class YahooFinanaceCrawler:
             articles = self.fetch_articles(symbol)
             threading.Thread(target=self.upload_to_mongo,
                              args=(articles,)).start()
+        driver.quit()
