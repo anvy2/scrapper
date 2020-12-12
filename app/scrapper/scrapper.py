@@ -8,7 +8,7 @@ import os
 import newspaper
 from extract_info import *
 from mongo import Mongo
-from ..constants import mongoURI
+from constants import mongoURI
 options = webdriver.ChromeOptions()
 options.binary_location = "/usr/bin/google-chrome-unstable"
 options.headless = True

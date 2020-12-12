@@ -1,1 +1,2 @@
-FLASK_APP=server/server flask run
+
+FLASK_APP=app/server/server flask run

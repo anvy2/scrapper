@@ -2,7 +2,7 @@ from flask import Flask, request, render_template
 from flask_pymongo import PyMongo
 import dateutil.parser as dparser
 from datetime import datetime
-from ..constants import mongoURI
+from constants import mongoURI
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = mongoURI  # Enter valid mongodbURI

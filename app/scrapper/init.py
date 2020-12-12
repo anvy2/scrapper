@@ -24,17 +24,15 @@ Comm = {
 }
 
 print(Comm)
-# try:
-document = pd.read_pickle('scrapper/symbols.pickle')
-destination = Comm['root_dir']
-Yahoo.init(document, 'symbol', destination)
-TOI.init(document, 'company', destination)
+try:
+    document = pd.read_pickle('symbols.pickle')
+    destination = Comm['root_dir']
 
-# x = threading.Thread(target=Yahoo.init, args=(
-#     document, 'symbol', destination,))
-# y = threading.Thread(target=TOI.init, args=(
-#     document, 'company', destination,))
-# x.start()
-# y.start()
-# except:
-#     sys.exit('Malformed arguments!')
+    x = threading.Thread(target=Yahoo.init, args=(
+        document, 'symbol', destination,))
+    y = threading.Thread(target=TOI.init, args=(
+        document, 'company', destination,))
+    x.start()
+    y.start()
+except:
+    sys.exit('Malformed arguments!')
