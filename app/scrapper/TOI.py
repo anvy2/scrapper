@@ -1,5 +1,6 @@
 import scrapper
 import re
+import map
 import dateutil.parser as dparser
 
 
@@ -103,13 +104,8 @@ TOIOptions = {
 }
 
 
-def init(symbol, column, destination):
-    print(destination)
-    keys = list(symbol[column])
-    value = list(symbol['symbol'])
-    symbols = {}
-    for i in range(len(keys)):
-        symbols[keys[i]] = value[i]
+def init(symbols, column, destination):
+    symbols = map.get_map(symbols, column)
     # symbols = {'Apple': 'AAPL'}
     TOIScrapper = scrapper.Scrapper(
         symbols, fields, TOIOptions, destination)

@@ -81,9 +81,9 @@ YahooOptions = {
 
 
 def init(symbols, column, destination):
-    result = map.get_map(symbols, column)
+    symbols = map.get_map(symbols, column)
     YahooFinanceScrapper = scrapper.Scrapper(
-        result, fields, YahooOptions, destination)
+        symbols, fields, YahooOptions, destination)
     YahooFinanceScrapper.start()
 
 
