@@ -31,11 +31,11 @@ try:
     except:
         sys.exit("error reading in pickle file")
     destination = Comm['root_dir']
-    x = threading.Thread(target=Yahoo.init, args=(
-        document, 'symbol', destination,))
+    # x = threading.Thread(target=Yahoo.init, args=(
+    #     document, 'symbol', destination,))
     y = threading.Thread(target=TOI.init, args=(
         document, 'company', destination,))
-    x.start()
+    # x.start()
     y.start()
 except:
     sys.exit('Malformed arguments!')

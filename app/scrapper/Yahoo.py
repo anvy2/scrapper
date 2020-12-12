@@ -18,6 +18,7 @@ def filter_author(string):
 fields = ['title', 'body', 'story_date', 'author', 'source', 'story_time']
 
 YahooOptions = {
+    'upload_to_mongo': True,
     'make_search_url': make_search_url,
     'base_url': 'http://in.finance.yahoo.com',
     'search': {

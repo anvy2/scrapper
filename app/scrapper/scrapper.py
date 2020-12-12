@@ -2,7 +2,8 @@ from selenium import webdriver
 import time
 from bs4 import BeautifulSoup
 import threading
-from datetime import date, datetime, time
+import datetime
+
 import json
 import os
 import newspaper
@@ -30,7 +31,7 @@ def get_html(url, js=False):
 
 
 def serialize(obj):
-    if isinstance(obj, (date, datetime, time)):
+    if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
         return str(obj)
 
 
@@ -65,7 +66,7 @@ class Scrapper:
         else:
             get_pages = self.params['search']['pages']['custom']
             pages = get_pages(soup)
-        # pages = 1
+        pages = 1
         links_container = []
         filter = self.params['search']['container']
         for page in range(1, pages + 1):
@@ -107,7 +108,8 @@ class Scrapper:
         for card in cards:
             details = {}
             details['security'] = self.symbols[security]
-            details['current_date'] = date.today()
+            details['current_date'] = datetime.datetime.combine(
+                datetime.date.today(), datetime.time.min)
             details['category'] = 'news'
             for field in self.fields:
                 result = ""
@@ -143,7 +145,7 @@ class Scrapper:
 
     def save_json(self, data, symbol):
         directory = os.path.join(self.destination, str(
-            date.today()), symbol)
+            datetime.date.today()), symbol)
         if not os.path.exists(directory):
             try:
                 os.makedirs(directory)
@@ -160,7 +162,5 @@ class Scrapper:
             if len(articles) > 0:
                 threading.Thread(target=self.save_json,
                                  args=(articles, symbol,)).start()
-            if self.params.get('upload_to_mongo') is True and len(articles) > 0:
-                threading.Thread(target=self.upload_to_mongo,
-                                 args=(articles,)).start()
+                self.upload_to_mongo(articles)
         driver.quit()

@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import tldextract
 import validators
 import dateutil.parser as dparser
+import datetime
 
 
 def decod(string):
@@ -67,9 +68,13 @@ def extract_html_property(soup, property, tag, options):
 
 def extract_date(string):
     t = dparser.parse(string, fuzzy=True)
-    return t.date()
+    try:
+        r = datetime.datetime.combine(t.date(), datetime.time.min)
+        return r
+    except:
+        return ""
 
 
 def extract_time(string):
     t = dparser.parse(string, fuzzy=True)
-    return t.time()
+    return str(t.time())

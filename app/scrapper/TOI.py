@@ -30,6 +30,7 @@ def filter_source(string):
 
 
 TOIOptions = {
+    'upload_to_mongo': True,
     'base_url': 'https://timesofindia.indiatimes.com',
     'make_search_url': make_search_url,
     'search': {
@@ -106,7 +107,7 @@ TOIOptions = {
 
 def init(symbols, column, destination):
     symbols = map.get_map(symbols, column)
-    # symbols = {'Apple': 'AAPL'}
+    symbols = {'Apple': 'AAPL'}
     TOIScrapper = scrapper.Scrapper(
         symbols, fields, TOIOptions, destination)
     TOIScrapper.start()
