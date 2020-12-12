@@ -3,7 +3,7 @@ import sys
 import threading
 import Yahoo
 import TOI
-
+import os
 
 import sys
 
@@ -22,12 +22,15 @@ Comm = {
     root_dir[0]: root_dir[1],
     source_list[0]: source_list[1]
 }
-
-print(Comm)
+location = os.path.dirname(os.path.realpath(__file__))
+filepath = os.path.join(location, 'symbols.pickle')
+print(filepath)
 try:
-    document = pd.read_pickle('symbols.pickle')
+    try:
+        document = pd.read_pickle(filepath)
+    except:
+        sys.exit("error reading in pickle file")
     destination = Comm['root_dir']
-
     x = threading.Thread(target=Yahoo.init, args=(
         document, 'symbol', destination,))
     y = threading.Thread(target=TOI.init, args=(
