@@ -9,6 +9,7 @@ import newspaper
 from extract_info import *
 from mongo import Mongo
 from constants import mongoURI
+import sys
 options = webdriver.ChromeOptions()
 options.binary_location = "/usr/bin/google-chrome-unstable"
 options.headless = True
@@ -43,7 +44,10 @@ class Scrapper:
         self.fields = fields
         self.js = params['js']
         if params.get('upload_to_mongo') is True:
-            self.mongo_client = Mongo(mongoURI)
+            try:
+                self.mongo_client = Mongo(mongoURI)
+            except:
+                sys.exit("Enter valid mongoURI in constants.py file!")
 
     def fetch_article_links(self, security):
         search_url = self.make_search_url(self.base_url, security)
@@ -141,7 +145,10 @@ class Scrapper:
         directory = os.path.join(self.destination, str(
             date.today()), symbol)
         if not os.path.exists(directory):
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except:
+                sys.exit('Unable to create directory: ' + str(directory))
         filepath = os.path.join(directory, 'output.json')
         with open(filepath, 'w+') as f:
             json.dump(data, f, indent=4, default=serialize)

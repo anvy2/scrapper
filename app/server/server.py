@@ -1,14 +1,19 @@
 from flask import Flask, request, render_template
 from flask_pymongo import PyMongo
 import dateutil.parser as dparser
+import sys
 from datetime import datetime
 from constants import mongoURI
 
+
 app = Flask(__name__)
-app.config["MONGO_URI"] = mongoURI  # Enter valid mongodbURI
-mongo = PyMongo(app)
-db = mongo['db']
-collection = db['articles']
+try:
+    app.config["MONGO_URI"] = mongoURI  # Enter valid mongodbURI
+    mongo = PyMongo(app)
+    db = mongo['db']
+    collection = db['articles']
+except:
+    sys.exit("Enter valid mongoURI in constants.py file!")
 
 
 @app.route('/', methods=['GET', 'POST'])
