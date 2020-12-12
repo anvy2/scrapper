@@ -9,7 +9,7 @@ class Mongo:
     def get_client(self):
         return self.client
 
-    def upload(self, data, db_name, table_name):
-        db = self.client['db_name']
+    def upload(self, data, table_name):
+        db = self.client['db']
         collection = db[table_name]
         result = collection.insert_many(documents=data, ordered=False)

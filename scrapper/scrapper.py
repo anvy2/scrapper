@@ -1,24 +1,18 @@
 from selenium import webdriver
 import time
-import pandas as pd
 from bs4 import BeautifulSoup
-import re
-import string
 import threading
-import logging
-from datetime import date
-
-import urllib3
+from datetime import date, datetime, time
+import json
+import os
 import newspaper
 from extract_info import *
 from mongo import Mongo
-
+from ..constants import mongoURI
 options = webdriver.ChromeOptions()
 options.binary_location = "/usr/bin/google-chrome-unstable"
 options.headless = True
 driver = webdriver.Chrome(options=options)
-
-http = urllib3.PoolManager()
 
 
 def get_html(url, js=False):
@@ -34,15 +28,22 @@ def get_html(url, js=False):
     return soup
 
 
+def serialize(obj):
+    if isinstance(obj, (date, datetime, time)):
+        return str(obj)
+
+
 class Scrapper:
-    def __init__(self, symbols, make_search_url, fields, params):
+    def __init__(self, symbols, fields, params, destination):
         self.symbols = symbols
         self.base_url = params['base_url']
         self.make_search_url = params['make_search_url']
-        # self.mongo_client = Mongo(params['mongoURI'])
+        self.destination = destination
         self.params = params
         self.fields = fields
         self.js = params['js']
+        if params.get('upload_to_mongo') is True:
+            self.mongo_client = Mongo(mongoURI)
 
     def fetch_article_links(self, security):
         search_url = self.make_search_url(self.base_url, security)
@@ -53,12 +54,14 @@ class Scrapper:
             if filter.get('custom') is None:
                 endpage = extract_html_property(soup, filter['html_property'],
                                                 filter['tag'], filter['options'])
-                pages = int(endpage)
-
-            else:
-                get_pages = self.params['search']['pages']['custom']
-                pages = get_pages(soup)
-        pages = 1
+                try:
+                    pages = int(endpage)
+                except:
+                    pages = 1
+        else:
+            get_pages = self.params['search']['pages']['custom']
+            pages = get_pages(soup)
+        # pages = 1
         links_container = []
         filter = self.params['search']['container']
         for page in range(1, pages + 1):
@@ -66,14 +69,15 @@ class Scrapper:
             if page == 1:
                 soup = get_html(search_url)
             for container in soup.find_all(filter['tag'], filter.get('options')):
-                links_container.append(container)
+                if container is not None:
+                    links_container.append(container)
         filter = self.params['search']['links']
-        # print(links_container)
         links = []
         for link in links_container:
             for card in link.find_all(filter['tag'], filter['options']):
-                links.append(card.get(filter['property']))
-        # print(links)
+                res = card.get(filter['property'])
+                if res is not None:
+                    links.append(res)
         return links
 
     def fetch_articles(self, security):
@@ -83,8 +87,7 @@ class Scrapper:
         for link in links:
             url = self.base_url + link
             soup = get_html(url, self.js)
-            # print(soup)
-            # print(soup.find('div', {'class': '_3lvqr clearfix'}))
+
             if filter.get('single') is not True:
                 for t in soup.find_all(filter['tag'], filter.get('options')):
                     if t is not None:
@@ -95,7 +98,6 @@ class Scrapper:
                 if t is not None:
                     cards.append(t)
 
-        # print(cards)
         articles = []
 
         for card in cards:
@@ -130,33 +132,28 @@ class Scrapper:
 
             articles.append(details)
 
-        # for card in cards:
-        #     details = {}
-        #     details['title'] = extract_single(
-        #         card, self.params['title']['tag'], None, self.params['title']['options'])
-        #     body = extract_all(
-        #         card, self.params['body']['tag'], None, 'class', 'caas-body')
-        #     details['body'] = body.replace("\xa0", "")
-        #     details['story_date'] = extract_single(card, 'time')
-        #     details['security'] = security
-        #     details['current_date'] = date.today()
-        #     details['author'] = extract_single(
-        #         card, 'div', None, 'class', 'caas-attr-meta')
-        #     details['source'] = extract_domain(
-        #         extract_html_property(
-        #             card, 'href', 'a', 'class', 'link rapid-noclick-resp caas-attr-provider-logo'))
-        #     details['category'] = 'news'
-        #     articles.append(details)
-        #     print(articles)
         return articles
 
     def upload_to_mongo(self, data):
         self.mongo_client.upload(data)
 
+    def save_json(self, data, symbol):
+        directory = os.path.join(self.destination, str(
+            date.today()), symbol)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        filepath = os.path.join(directory, 'output.json')
+        with open(filepath, 'w+') as f:
+            json.dump(data, f, indent=4, default=serialize)
+
     def start(self):
+        articles = []
         for security, symbol in self.symbols.items():
             articles = self.fetch_articles(security)
-            print(articles)
-            # threading.Thread(target=self.upload_to_mongo,
-            #                  args=(articles,)).start()
+            if len(articles) > 0:
+                threading.Thread(target=self.save_json,
+                                 args=(articles, symbol,)).start()
+            if self.params.get('upload_to_mongo') is True and len(articles) > 0:
+                threading.Thread(target=self.upload_to_mongo,
+                                 args=(articles,)).start()
         driver.quit()

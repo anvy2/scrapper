@@ -4,23 +4,27 @@ import validators
 import dateutil.parser as dparser
 
 
+def decod(string):
+    return str(string)
+
+
 def extract_all(soup, tag, parent=None, options=None):
     # soup = BeautifulSoup(soup, 'lxml')
     result = ""
     if parent is not None:
         if options is not None:
             for r in soup.find_all(tag, options):
-                result += str(r.previousSibling) + " "
+                result += decod(r.previousSibling) + " "
         else:
             for r in soup.find_all(tag):
-                result += str(r.previousSibling) + " "
+                result += decod(r.previousSibling) + " "
     else:
         if options is not None:
             for r in soup.find_all(tag, options):
-                result += str(r.text) + " "
+                result += decod(r.text) + " "
         else:
             for r in soup.find_all(tag):
-                result += str(r.text) + " "
+                result += decod(r.text) + " "
     return result
 
 
@@ -29,17 +33,17 @@ def extract_single(soup, tag, parent=None, options=None):
     if parent is not None:
         if options is not None:
             r = soup.find(tag, options)
-            result = str(r.previousSibling)
+            result = decod(r.previousSibling)
         else:
             r = soup.find(tag)
-            result = str(r.previousSibling)
+            result = decod(r.previousSibling)
     else:
         if options is not None:
             r = soup.find(tag, options)
-            result = str(r.text)
+            result = decod(r.text)
         else:
             r = soup.find(tag)
-            result = str(r.text)
+            result = decod(r.text)
     return result
 
 

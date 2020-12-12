@@ -1,1 +1,1 @@
-python scrapper/init.py --root_dir="xyz" --source_list="xyz"
+python scrapper/init.py --root_dir=/home/anvy/Others/Projects/flask/data --source_list=xyz

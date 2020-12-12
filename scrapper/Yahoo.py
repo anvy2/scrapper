@@ -18,7 +18,6 @@ def filter_author(string):
 fields = ['title', 'body', 'story_date', 'author', 'source', 'story_time']
 
 YahooOptions = {
-    'mongoURI': 'sondoins',
     'make_search_url': make_search_url,
     'base_url': 'http://in.finance.yahoo.com',
     'search': {
@@ -81,10 +80,10 @@ YahooOptions = {
 }
 
 
-def init(symbols, column):
+def init(symbols, column, destination):
     result = map.get_map(symbols, column)
     YahooFinanceScrapper = scrapper.Scrapper(
-        result, fields, YahooOptions)
+        result, fields, YahooOptions, destination)
     YahooFinanceScrapper.start()
 
 
